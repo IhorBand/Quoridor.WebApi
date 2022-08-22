@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Quoridor.Shared.targets" />
+  
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Abstractions\Validators\" />
+    <Folder Include="Abstractions\Services\" />
+    <Folder Include="Abstractions\Repositories\" />
+    <Folder Include="Abstractions\Providers\" />
+    <Folder Include="DTO\DatabaseEntities\" />
+  </ItemGroup>
+
+</Project>

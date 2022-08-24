@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -23,6 +25,10 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using Quoridor.DataAccess.Repositories;
+using Quoridor.Service.Services;
+using Quoridor.Shared.Abstractions.Repositories;
+using Quoridor.Shared.Abstractions.Services;
 using Quoridor.Shared.DTO.Configuration;
 using Quoridor.WebApi.Hubs;
 using Quoridor.WebApi.Infrastructure.MappingProfiles;
@@ -58,6 +64,8 @@ namespace Quoridor.WebApi
 
             var connectionStrings =
                 this.Configuration.GetSection("ConnectionStrings").Get<ConnectionStringConfiguration>();
+            var jwtSettings =
+                this.Configuration.GetSection("Jwt").Get<JwtTokenConfiguration>();
 
             services
                 .AddControllers()
@@ -65,6 +73,20 @@ namespace Quoridor.WebApi
                 {
                     op.SerializerSettings.Converters.Add(new StringEnumConverter());
                 });
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidAudience = jwtSettings.Audience,
+                    ValidIssuer = jwtSettings.Issuer,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key))
+                };
+            });
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             services.AddEndpointsApiExplorer();
@@ -133,7 +155,7 @@ namespace Quoridor.WebApi
 
             app.UseCors("OpenPolicy");
 
-            // app.UseAuthentication();
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
@@ -148,6 +170,9 @@ namespace Quoridor.WebApi
             var connectionStrings = this.Configuration.GetSection("ConnectionStrings").Get<ConnectionStringConfiguration>();
             services.AddSingleton(connectionStrings);
 
+            var jwtSettings = this.Configuration.GetSection("Jwt").Get<JwtTokenConfiguration>();
+            services.AddSingleton(jwtSettings);
+
             // AutoMapper Configuration
             var mapperConfig = new MapperConfiguration(mc =>
             {
@@ -156,6 +181,13 @@ namespace Quoridor.WebApi
 
             IMapper mapper = mapperConfig.CreateMapper();
             services.AddSingleton(mapper);
+
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IGameRepository, GameRepository>();
+            services.AddScoped<IGameUserRepository, GameUserRepository>();
+
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IGameService, GameService>();
         }
 
         private Task WriteResponseAsync(HttpContext httpContext, HealthReport result)

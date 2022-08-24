@@ -1,0 +1,3 @@
+ALTER TABLE [dbo].[T_Game]
+ADD FK_User_Creator [UNIQUEIDENTIFIER] FOREIGN KEY REFERENCES [dbo].[T_User]([PK_User]) NOT NULL
+GO

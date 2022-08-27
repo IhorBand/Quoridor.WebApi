@@ -47,5 +47,21 @@ namespace Quoridor.WebApi.Controllers
                 return this.BadRequest("Please, fill input fields.");
             }
         }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetAllAvailableSessionsAsync()
+        {
+            try
+            {
+                var result = await this.gameService.GetAllAvailableSessionsAsync().ConfigureAwait(false);
+                return this.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "ERROR [GetAllAvailableSessionsAsync]");
+                return this.BadRequest(ex.Message);
+            }
+        }
     }
 }

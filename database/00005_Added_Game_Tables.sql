@@ -1,0 +1,15 @@
+CREATE TABLE [dbo].[T_Game_Board](
+	[PK_Game_Board] [UNIQUEIDENTIFIER] CONSTRAINT DF_T_Game_Board_PK_Game_Board DEFAULT NEWID() NOT NULL,
+	[FK_Game] [UNIQUEIDENTIFIER] CONSTRAINT FK_T_Game_Board_PK_Game_Board_T_Game_PK_Game FOREIGN KEY REFERENCES [dbo].[T_Game]([PK_Game]) NOT NULL,
+	[FK_User] [UNIQUEIDENTIFIER] CONSTRAINT FK_T_Game_Board_PK_Game_Board_T_User_PK_User FOREIGN KEY REFERENCES [dbo].[T_User]([PK_User]) NOT NULL,
+	[Position_X] INT NOT NULL,
+	[Position_Y] INT NOT NULL,
+	[Game_Board_Entity_Type] INT NOT NULL,
+	[Order] INT NOT NULL,
+	[CreatedDateUTC] [DATETIME] CONSTRAINT DF_T_Game_Board_CreatedDateUTC DEFAULT GETUTCDATE() NOT NULL,
+	CONSTRAINT [T_Game_Board_PK_Game_Board] PRIMARY KEY CLUSTERED
+	(
+		[PK_Game_Board] ASC
+	)
+)
+GO

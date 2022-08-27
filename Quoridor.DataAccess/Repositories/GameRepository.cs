@@ -2,6 +2,7 @@
 using Quoridor.Shared.Abstractions.Repositories;
 using Quoridor.Shared.DTO.Configuration;
 using Quoridor.Shared.DTO.DatabaseEntities;
+using Quoridor.Shared.DTO.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -43,11 +44,27 @@ namespace Quoridor.DataAccess.Repositories
             return gameId;
         }
 
+        public async Task<List<Game>> GetAllAvailableSessionsAsync()
+        {
+            var sql = @"
+                    SELECT
+                        [PK_Game] AS Id,
+                        [Name],
+                        [FK_User_Creator] AS UserCreatorId,
+	                    [Max_Players] AS MaxPlayers,
+	                    [Status],
+                        [CreatedDateUTC]
+                    FROM [dbo].[T_Game]
+                    WHERE [Status] = @Status";
+            var games = await this.QueryAsync<Game>(sql, new { Status = GameStatus.WaitingForPlayers });
+            return games;
+        }
+
         public async Task<Game> GetByIdAsync(Guid id)
         {
             var sql = @"
                     SELECT
-                        [PK_Game] AS Id
+                        [PK_Game] AS Id,
                         [Name],
                         [FK_User_Creator] AS UserCreatorId,
 	                    [Max_Players] AS MaxPlayers,
@@ -57,6 +74,15 @@ namespace Quoridor.DataAccess.Repositories
                     WHERE [PK_Game] = @Id";
             var game = await this.QueryFirstOrDefaultAsync<Game>(sql, new { Id = id});
             return game;
+        }
+
+        public async Task UpdateStatusAsync(Guid gameId, GameStatus gameStatus)
+        {
+            var sql = @"
+                    UPDATE [dbo].[T_Game] 
+                    SET [Status] = @Status 
+                    WHERE [PK_Game] = @GameId";
+            await this.ExecuteAsync(sql, new { GameId = gameId, Status = gameStatus });
         }
     }
 }

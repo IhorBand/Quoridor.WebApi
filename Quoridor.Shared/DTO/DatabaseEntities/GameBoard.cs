@@ -5,14 +5,15 @@ using Quoridor.Shared.DTO.Enums;
 
 namespace Quoridor.Shared.DTO.DatabaseEntities
 {
-    public class GameUser
+    public class GameBoard
     {
         public Guid Id { get; set; }
-        public Guid UserId { get; set; }
         public Guid GameId { get; set; }
-        public bool IsActive { get; set; }
-        public bool IsAbleToMove { get; set; }
-        public Direction DirectionToWin { get; set; }
+        public Guid UserId { get; set; }
+        public GameBoardEntityType GameBoardEntityType { get; set; }
+        public int PositionX { get; set; }
+        public int PositionY { get; set; }
+        public int Order { get; set; }
         public DateTime CreatedDateUTC { get; set; }
     }
 }

@@ -16,19 +16,32 @@ namespace Quoridor.Service.Services
     {
         private readonly ILogger<GameService> logger;
         private readonly IGameRepository gameRepository;
+        private readonly IGameUserRepository gameUserRepository;
 
         public GameService(
             ILogger<GameService> logger,
             IGameRepository gameRepository,
-            JwtTokenConfiguration jwtTokenConfiguration)
+            IGameUserRepository gameUserRepository)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.gameRepository = gameRepository ?? throw new ArgumentNullException(nameof(gameRepository));
+            this.gameUserRepository = gameUserRepository ?? throw new ArgumentNullException(nameof(gameUserRepository));
         }
 
+        public async Task<List<Game>> GetAllAvailableSessionsAsync()
+        {
+            return await this.gameRepository.GetAllAvailableSessionsAsync().ConfigureAwait(false);
+        }
+
+        /// <summary>
+        ///   Creates new game.
+        /// </summary>
+        /// <param name="createGameModel">model to create a game record.</param>
+        /// <param name="userCreatorId">Id of creator.</param>
+        /// <returns>A <see cref="Guid"/> returns Id of created Game.</returns>
         public async Task<Guid> CreateGameAsync(CreateGameModel createGameModel, Guid userCreatorId)
         {
-            if (createGameModel.MaxPlayers == 2 || createGameModel.MaxPlayers == 4)
+            if (createGameModel.MaxPlayers == 2)
             {
                 var game = new Game()
                 {
@@ -43,7 +56,7 @@ namespace Quoridor.Service.Services
             }
             else
             {
-                throw new Exception("maxPlayers field must be 2 or 4.");
+                throw new Exception("maxPlayers field must be 2 ( 4 players will be available soon :) ).");
             }
         }
     }

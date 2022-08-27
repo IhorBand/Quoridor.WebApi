@@ -123,6 +123,8 @@ namespace Quoridor.WebApi
                         new List<string>()
                     },
                 });
+
+                c.AddSignalRSwaggerGen();
             });
 
             services.AddSwaggerGenNewtonsoftSupport();
@@ -161,7 +163,7 @@ namespace Quoridor.WebApi
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapHub<TestHub>("/testhub");
+                endpoints.MapHub<GameHub>("/hubs/GameHub");
             });
         }
 
@@ -185,9 +187,12 @@ namespace Quoridor.WebApi
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IGameRepository, GameRepository>();
             services.AddScoped<IGameUserRepository, GameUserRepository>();
+            services.AddScoped<IGameBoardRepository, GameBoardRepository>();
 
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IGameService, GameService>();
+            services.AddScoped<IGameUserService, GameUserService>();
+            services.AddScoped<IGameBoardService, GameBoardService>();
         }
 
         private Task WriteResponseAsync(HttpContext httpContext, HealthReport result)

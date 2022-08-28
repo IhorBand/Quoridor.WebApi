@@ -44,7 +44,7 @@ namespace Quoridor.Service.Services
 
             if (gameUserRecord.IsAbleToMove == false)
             {
-                throw new InvalidPositionException();
+                throw new AnotherPlayerMoveException();
             }
 
             var lastMove = await this.gameBoardRepository.GetLastPawnMoveAsync(gameId, userId).ConfigureAwait(false);
@@ -168,6 +168,21 @@ namespace Quoridor.Service.Services
             var gameUserRecords = await this.gameUserRepository.GetByGameIdAsync(gameId).ConfigureAwait(false);
             var enemyGameUserRecord = gameUserRecords.First(g => g.UserId != userId);
             var playerGameUserRecord = gameUserRecords.First(g => g.UserId == userId);
+
+            if (playerGameUserRecord == null)
+            {
+                throw new EmptyBoardException();
+            }
+
+            if (playerGameUserRecord.Id == Guid.Empty)
+            {
+                throw new EmptyBoardException();
+            }
+
+            if (playerGameUserRecord.IsAbleToMove == false)
+            {
+                throw new AnotherPlayerMoveException();
+            }
 
             var playerPawn = await this.gameBoardRepository.GetLastPawnMoveAsync(gameId, userId).ConfigureAwait(false);
             var enemyPawn = await this.gameBoardRepository.GetLastPawnMoveAsync(gameId, enemyGameUserRecord.UserId).ConfigureAwait(false);

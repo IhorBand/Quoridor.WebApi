@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Quoridor.Shared.DTO.OutputModels;
 
 namespace Quoridor.Shared.Abstractions.Services
 {
@@ -9,6 +10,6 @@ namespace Quoridor.Shared.Abstractions.Services
     {
         public Task RemoveUserFromGameAsync(Guid userGameId);
         public Task RemoveUserFromGameAsync(Guid gameId, Guid userId);
-        public Task<Guid> AddPlayerToGameAsync(Guid userId, Guid gameId);
+        public Task<JoinGameOutputModel> AddPlayerToGameAsync(Guid userId, Guid gameId);
     }
 }

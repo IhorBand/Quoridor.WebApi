@@ -112,19 +112,36 @@ namespace Quoridor.DataAccess.Repositories
             return walls;
         }
 
-        public async Task<bool> IsEntityExistsOnPositionAsync(Guid gameId, Position position)
+        public async Task<bool> IsWallExistsOnPositionAsync(Guid gameId, Position position)
         {
             var sql = @"
                         SELECT CASE WHEN 
 	                        EXISTS (
 		                        SELECT TOP 1 PK_Game_board
                                 FROM   dbo.T_Game_Board
-                                WHERE  FK_Game = @GameId AND Position_X = @PositionX AND Position_Y = @PositionY
+                                WHERE  FK_Game = @GameId AND Position_X = @PositionX AND Position_Y = @PositionY AND [Game_Board_Entity_Type] = @GameBoardEntityType
 	                        ) 
 	                        THEN 1
                             ELSE 0
 	                        END";
-            var isExists = await this.QuerySingleAsync<bool>(sql, new { GameId = gameId, PositionX = position.X, PositionY = position.Y }).ConfigureAwait(false);
+            var isExists = await this.QuerySingleAsync<bool>(sql, new { GameId = gameId, PositionX = position.X, PositionY = position.Y, GameBoardEntityType = GameBoardEntityType.Wall }).ConfigureAwait(false);
+            return isExists;
+        }
+
+        public async Task<bool> IsEnemyExistsOnPositionAsync(Guid gameId, Guid playerId, Position position)
+        {
+            var sql = @"
+                        SELECT CASE WHEN 
+	                        LTRIM(@PositionX)+'_'+LTRIM(@PositionY) = (
+		                        SELECT TOP 1 LTRIM([Position_X])+'_'+LTRIM([Position_Y])
+                                FROM   dbo.T_Game_Board
+                                WHERE  FK_Game = @GameId AND [FK_User] <> @UserId
+                                ORDER BY [Order] DESC
+	                        ) 
+	                        THEN 1
+                            ELSE 0
+	                        END";
+            var isExists = await this.QuerySingleAsync<bool>(sql, new { GameId = gameId, UserId = playerId, PositionX = position.X, PositionY = position.Y }).ConfigureAwait(false);
             return isExists;
         }
     }

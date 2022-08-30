@@ -52,10 +52,10 @@ namespace Quoridor.WebApi.Hubs
         {
             try
             {
-                var gameUserId = await this.gameUserService.AddPlayerToGameAsync(this.UserId, gameId).ConfigureAwait(false);
+                var output = await this.gameUserService.AddPlayerToGameAsync(this.UserId, gameId).ConfigureAwait(false);
                 await this.Groups.AddToGroupAsync(this.Context.ConnectionId, gameId.ToString()).ConfigureAwait(false);
-                await this.Clients.GroupExcept(gameId.ToString(), this.Context.ConnectionId).SendAsync("OnUserJoinedGame", this.DisplayName, this.UserId).ConfigureAwait(false);
-                await this.Clients.Caller.SendAsync("OnJoinGameSuccess", "Success").ConfigureAwait(false);
+                await this.Clients.GroupExcept(gameId.ToString(), this.Context.ConnectionId).SendAsync("OnUserJoinedGame", this.DisplayName, this.UserId, output.PlayerPosition, output.DirectionToWin).ConfigureAwait(false);
+                await this.Clients.Caller.SendAsync("OnJoinGameSuccess", output.PlayerPosition, output.EnemyPosition, output.IsFull, output.IsAbleToMove, output.DirectionToWin).ConfigureAwait(false);
             }
             catch (RoomFullException exception)
             {
@@ -75,7 +75,7 @@ namespace Quoridor.WebApi.Hubs
             {
                 await this.gameUserService.RemoveUserFromGameAsync(gameId, this.UserId).ConfigureAwait(false);
                 await this.Groups.RemoveFromGroupAsync(this.Context.ConnectionId, gameId.ToString()).ConfigureAwait(false);
-                await this.Clients.Group(gameId.ToString()).SendAsync("OnUserLeftGame", this.DisplayName, this.UserId).ConfigureAwait(false);
+                await this.Clients.GroupExcept(gameId.ToString(), this.Context.ConnectionId).SendAsync("OnUserLeftGame", this.DisplayName, this.UserId).ConfigureAwait(false);
                 await this.Clients.Caller.SendAsync("OnLeaveGameSuccess", "Success").ConfigureAwait(false);
             }
             catch (Exception exception)
@@ -92,12 +92,12 @@ namespace Quoridor.WebApi.Hubs
                 var isPlayerWon = await this.gameBoardService.MakeMoveAsync(gameId, this.UserId, direction).ConfigureAwait(false);
                 if (isPlayerWon)
                 {
-                    await this.Clients.Group(gameId.ToString()).SendAsync("OnUserMadeWinningMove", this.UserId, direction).ConfigureAwait(false);
+                    await this.Clients.GroupExcept(gameId.ToString(), this.Context.ConnectionId).SendAsync("OnUserMadeWinningMove", this.UserId, direction).ConfigureAwait(false);
                     await this.Clients.Caller.SendAsync("OnPlayerWonAfterMove", "Success").ConfigureAwait(false);
                 }
                 else
                 {
-                    await this.Clients.Group(gameId.ToString()).SendAsync("OnUserMadeMove", this.UserId, direction).ConfigureAwait(false);
+                    await this.Clients.GroupExcept(gameId.ToString(), this.Context.ConnectionId).SendAsync("OnUserMadeMove", this.UserId, direction).ConfigureAwait(false);
                     await this.Clients.Caller.SendAsync("OnMakeMoveSuccess", "Success").ConfigureAwait(false);
                 }
             }
@@ -123,7 +123,7 @@ namespace Quoridor.WebApi.Hubs
             try
             {
                 await this.gameBoardService.BuildWallAsync(gameId, this.UserId, positionStart, positionEnd).ConfigureAwait(false);
-                await this.Clients.Group(gameId.ToString()).SendAsync("OnUserBuiltWall", this.UserId, positionStart, positionEnd).ConfigureAwait(false);
+                await this.Clients.GroupExcept(gameId.ToString(), this.Context.ConnectionId).SendAsync("OnUserBuiltWall", this.UserId, positionStart, positionEnd).ConfigureAwait(false);
                 await this.Clients.Caller.SendAsync("OnBuildWallSuccess", "Success").ConfigureAwait(false);
             }
             catch (InvalidPositionException exception)

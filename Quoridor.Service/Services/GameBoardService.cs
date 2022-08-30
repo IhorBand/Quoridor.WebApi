@@ -106,13 +106,13 @@ namespace Quoridor.Service.Services
                 throw new InvalidPositionException();
             }
 
-            var isWallExists = await this.gameBoardRepository.IsEntityExistsOnPositionAsync(gameId, possibleWallPosition).ConfigureAwait(false);
+            var isWallExists = await this.gameBoardRepository.IsWallExistsOnPositionAsync(gameId, possibleWallPosition).ConfigureAwait(false);
             if (isWallExists)
             {
                 throw new InvalidPositionException();
             }
 
-            var isEnemyOnNewPosition = await this.gameBoardRepository.IsEntityExistsOnPositionAsync(gameId, newPosition).ConfigureAwait(false);
+            var isEnemyOnNewPosition = await this.gameBoardRepository.IsEnemyExistsOnPositionAsync(gameId, userId, newPosition).ConfigureAwait(false);
             if (isEnemyOnNewPosition)
             {
                 throw new InvalidPositionException();
@@ -224,6 +224,11 @@ namespace Quoridor.Service.Services
                 }).ConfigureAwait(false);
 
             await this.gameUserRepository.ChangeUsersTurnAsync(userId, gameId, false).ConfigureAwait(false);
+        }
+
+        public async Task<GameBoard> GetLastPawnMoveAsync(Guid gameId, Guid userId)
+        {
+            return await this.gameBoardRepository.GetLastPawnMoveAsync(gameId, userId).ConfigureAwait(false);
         }
 
         private bool CheckForDeadEnd(Position currentPosition, Position enemyPawn, List<GameBoard> walls, Direction direction, List<Position> alreadyChecked)

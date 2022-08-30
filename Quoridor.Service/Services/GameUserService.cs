@@ -9,6 +9,7 @@ using Quoridor.Shared.Abstractions.Services;
 using Quoridor.Shared.DTO.Configuration;
 using Quoridor.Shared.DTO.DatabaseEntities;
 using Quoridor.Shared.DTO.Enums;
+using Quoridor.Shared.DTO.OutputModels;
 using Quoridor.Shared.Exceptions;
 
 namespace Quoridor.Service.Services
@@ -50,7 +51,7 @@ namespace Quoridor.Service.Services
         /// <param name="userId">Id of user.</param>
         /// <param name="gameId">Id of game.</param>
         /// <returns>A <see cref="Guid"/> returns Id of T_Game_User Table.</returns>
-        public async Task<Guid> AddPlayerToGameAsync(Guid userId, Guid gameId)
+        public async Task<JoinGameOutputModel> AddPlayerToGameAsync(Guid userId, Guid gameId)
         {
             var game = await this.gameRepository.GetByIdAsync(gameId).ConfigureAwait(false);
 
@@ -90,10 +91,10 @@ namespace Quoridor.Service.Services
                         {
                             GameBoardEntityType = GameBoardEntityType.Player,
                             GameId = gameId,
-                            UserId = userIdsInGame.First(u => u.Id != userId).Id,
-                            Order = 0,
+                            UserId = userIdsInGame.First(u => u.UserId != userId).UserId,
+                            Order = -1,
                             PositionX = 9,
-                            PositionY = 1
+                            PositionY = gameUser.DirectionToWin == Direction.Up ? 17 : 1
                         },
                         new GameBoard()
                         {
@@ -102,7 +103,7 @@ namespace Quoridor.Service.Services
                             UserId = userId,
                             Order = 0,
                             PositionX = 9,
-                            PositionY = 17
+                            PositionY = gameUser.DirectionToWin == Direction.Up ? 1 : 17
                         }
                     };
 
@@ -114,7 +115,15 @@ namespace Quoridor.Service.Services
                     await this.gameRepository.UpdateStatusAsync(gameId, GameStatus.InProgress).ConfigureAwait(false);
                 }
 
-                return gameUserId;
+                return new JoinGameOutputModel()
+                {
+                    UserGameId = gameUserId,
+                    PlayerPosition = new Shared.DTO.InputModels.Game.Position(9, gameUser.DirectionToWin == Direction.Up ? 1 : 17),
+                    EnemyPosition = new Shared.DTO.InputModels.Game.Position(9, gameUser.DirectionToWin == Direction.Up ? 17 : 1),
+                    IsFull = !isFirstConnection,
+                    IsAbleToMove = gameUser.IsAbleToMove,
+                    DirectionToWin = gameUser.DirectionToWin
+                };
             }
             else
             {
